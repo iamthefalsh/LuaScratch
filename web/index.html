@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LuaScratch v2.0 - AI Visual Programming for Roblox</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="logo-animation">
+        <div class="logo-block block-1"></div>
+        <div class="logo-block block-2"></div>
+        <div class="logo-block block-3"></div>
+      </div>
+      <h1 class="loading-title">LuaScratch</h1>
+      <p class="loading-subtitle">AI-Powered Visual Programming</p>
+      <div class="loading-bar"><div class="loading-progress"></div></div>
+      <p class="loading-status">Initializing...</p>
+    </div>
+    <div class="loading-bubbles">
+      <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+      <div class="bubble"></div><div class="bubble"></div>
+    </div>
+  </div>
+
+  <!-- AI Loading Overlay -->
+  <div id="ai-loading-overlay" class="ai-loading-overlay hidden">
+    <div class="ai-loading-content">
+      <div class="ai-brain"><div class="brain-pulse"></div><i class="fas fa-brain"></i></div>
+      <h2>DeepSeek AI is thinking...</h2>
+      <p id="ai-loading-message">Analyzing</p>
+      <div class="ai-loading-stages">
+        <div class="stage" data-stage="analyzing"><i class="fas fa-search"></i><span>Analyzing</span></div>
+        <div class="stage" data-stage="generating"><i class="fas fa-code"></i><span>Generating</span></div>
+        <div class="stage" data-stage="optimizing"><i class="fas fa-magic"></i><span>Optimizing</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <div class="logo-icon"><div class="mini-block b1"></div><div class="mini-block b2"></div></div>
+          <span class="logo-text">LuaScratch</span>
+        </div>
+        <nav class="nav-tabs">
+          <button class="nav-tab active" data-tab="editor"><i class="fas fa-cubes"></i> Editor</button>
+          <button class="nav-tab" data-tab="projects"><i class="fas fa-folder"></i> Projects</button>
+        </nav>
+      </div>
+      <div class="header-center">
+        <div class="project-info">
+          <span id="current-project-name">No Project</span>
+          <button id="edit-project-btn" class="icon-btn"><i class="fas fa-pen"></i></button>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="connection-status" id="roblox-status">
+          <span class="status-dot disconnected"></span>
+          <span class="status-text">Roblox: Disconnected</span>
+        </div>
+        <button id="run-btn" class="btn btn-primary"><i class="fas fa-play"></i> Run</button>
+        <button id="ai-assist-btn" class="btn btn-ai"><i class="fas fa-robot"></i> AI</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Left Sidebar - Block Palette -->
+      <aside class="sidebar sidebar-left">
+        <div class="sidebar-header">
+          <h3><i class="fas fa-shapes"></i> Blocks</h3>
+        </div>
+        <div class="block-categories">
+          <div class="category active" data-category="empty">
+            <div class="category-color" style="background: #6366f1;"></div>
+            <span>Empty</span>
+          </div>
+          <div class="category" data-category="events">
+            <div class="category-color" style="background: #FFD700;"></div>
+            <span>Events</span>
+          </div>
+          <div class="category" data-category="control">
+            <div class="category-color" style="background: #FF8C00;"></div>
+            <span>Control</span>
+          </div>
+          <div class="category" data-category="motion">
+            <div class="category-color" style="background: #4169E1;"></div>
+            <span>Motion</span>
+          </div>
+          <div class="category" data-category="roblox">
+            <div class="category-color" style="background: #00CED1;"></div>
+            <span>Roblox</span>
+          </div>
+        </div>
+        <div class="block-palette" id="block-palette"></div>
+        <div class="palette-hint">
+          <i class="fas fa-info-circle"></i>
+          <span>Double-click or drag blocks</span>
+        </div>
+      </aside>
+
+      <!-- Center - Workspace -->
+      <section class="workspace" id="workspace-area">
+        <div class="workspace-header">
+          <div class="workspace-tools">
+            <button class="tool-btn" id="zoom-in" title="Zoom In"><i class="fas fa-plus"></i></button>
+            <button class="tool-btn" id="zoom-out" title="Zoom Out"><i class="fas fa-minus"></i></button>
+            <button class="tool-btn" id="fit-view" title="Reset Zoom"><i class="fas fa-compress"></i></button>
+            <div class="tool-separator"></div>
+            <button class="tool-btn" id="delete-block" title="Delete Selected"><i class="fas fa-trash"></i></button>
+            <button class="tool-btn" id="clear-workspace" title="Clear All"><i class="fas fa-eraser"></i></button>
+          </div>
+          <div class="workspace-tabs">
+            <button class="workspace-tab active" data-view="visual"><i class="fas fa-cubes"></i> Visual</button>
+            <button class="workspace-tab" data-view="code"><i class="fas fa-code"></i> Code</button>
+            <button class="workspace-tab" data-view="split"><i class="fas fa-columns"></i> Split</button>
+          </div>
+        </div>
+        <div class="workspace-content">
+          <div class="block-workspace" id="block-workspace">
+            <svg class="connections-layer" id="connections-layer"></svg>
+            <div class="blocks-container" id="blocks-container">
+              <div class="workspace-placeholder">
+                <i class="fas fa-hand-pointer"></i>
+                <p>Drag blocks here or double-click a template</p>
+              </div>
+            </div>
+          </div>
+          <div class="code-panel hidden" id="code-panel">
+            <div class="code-header">
+              <span>Generated Luau Code</span>
+              <button class="icon-btn" id="copy-code"><i class="fas fa-copy"></i></button>
+            </div>
+            <pre class="code-editor" id="code-editor"><code>-- Your code will appear here</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Sidebar -->
+      <aside class="sidebar sidebar-right">
+        <div class="sidebar-tabs">
+          <button class="sidebar-tab active" data-panel="properties"><i class="fas fa-sliders-h"></i> Properties</button>
+          <button class="sidebar-tab" data-panel="console"><i class="fas fa-terminal"></i> Console</button>
+          <button class="sidebar-tab" data-panel="ai-chat"><i class="fas fa-robot"></i> AI</button>
+        </div>
+        
+        <!-- Properties Panel -->
+        <div class="sidebar-panel active" id="properties-panel">
+          <div class="panel-content">
+            <div class="empty-state" id="no-selection">
+              <i class="fas fa-mouse-pointer"></i>
+              <p>Select a block to edit</p>
+              <span>The Empty block can be fully customized</span>
+            </div>
+            <div class="block-properties hidden" id="block-properties">
+              <div class="property-section">
+                <h4>Basic</h4>
+                <div class="property-group">
+                  <label>Name</label>
+                  <input type="text" id="prop-label" placeholder="Block name">
+                </div>
+                <div class="property-group">
+                  <label>Description</label>
+                  <textarea id="prop-description" rows="2" placeholder="What does this block do?"></textarea>
+                </div>
+              </div>
+              
+              <div class="property-section">
+                <h4>Appearance</h4>
+                <div class="property-row">
+                  <div class="property-group half">
+                    <label>Color</label>
+                    <input type="color" id="prop-color" value="#6366f1">
+                  </div>
+                  <div class="property-group half">
+                    <label>Icon</label>
+                    <select id="prop-icon">
+                      <option value="fa-cube">Cube</option>
+                      <option value="fa-play">Play</option>
+                      <option value="fa-user">User</option>
+                      <option value="fa-hand-pointer">Click</option>
+                      <option value="fa-clock">Wait</option>
+                      <option value="fa-redo">Loop</option>
+                      <option value="fa-arrows-alt">Move</option>
+                      <option value="fa-terminal">Print</option>
+                      <option value="fa-robot">AI</option>
+                      <option value="fa-star">Star</option>
+                      <option value="fa-bolt">Bolt</option>
+                      <option value="fa-code">Code</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="property-section">
+                <h4>Code</h4>
+                <div class="property-group">
+                  <textarea id="prop-code" rows="10" class="code-input" placeholder="-- Enter Luau code here"></textarea>
+                </div>
+              </div>
+              
+              <div class="property-actions">
+                <button class="btn btn-primary" id="update-block"><i class="fas fa-save"></i> Save Changes</button>
+                <button class="btn btn-danger" id="delete-selected"><i class="fas fa-trash"></i> Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Console Panel -->
+        <div class="sidebar-panel" id="console-panel">
+          <div class="console-header">
+            <div class="console-filters">
+              <button class="filter-btn active" data-filter="all">All</button>
+              <button class="filter-btn" data-filter="log">Log</button>
+              <button class="filter-btn" data-filter="error">Errors</button>
+              <button class="filter-btn" data-filter="success">Success</button>
+            </div>
+            <button class="icon-btn" id="clear-console"><i class="fas fa-trash-alt"></i></button>
+          </div>
+          <div class="console-output" id="console-output">
+            <div class="console-message info">
+              <span class="timestamp">[00:00:00]</span>
+              <span class="message">LuaScratch console ready...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Chat Panel -->
+        <div class="sidebar-panel" id="ai-chat-panel">
+          <div class="ai-chat-header">
+            <i class="fas fa-robot"></i>
+            <span>DeepSeek AI</span>
+          </div>
+          <div class="ai-chat-messages" id="ai-chat-messages">
+            <div class="ai-message">
+              <div class="message-bubble">
+                <p>Hi! I'm DeepSeek AI. I can help you:</p>
+                <ul>
+                  <li>Generate Luau code from descriptions</li>
+                  <li>Create custom blocks</li>
+                  <li>Fix errors in your code</li>
+                </ul>
+                <p>What would you like to build?</p>
+              </div>
+            </div>
+          </div>
+          <div class="ai-chat-input">
+            <textarea id="ai-prompt" placeholder="Describe what you want to create..." rows="3"></textarea>
+            <div class="ai-actions">
+              <button class="btn btn-ai" id="send-ai-prompt"><i class="fas fa-paper-plane"></i> Generate</button>
+              <button class="btn btn-secondary" id="ai-ideate"><i class="fas fa-lightbulb"></i> Ideas</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- New Project Modal -->
+    <div class="modal hidden" id="new-project-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2><i class="fas fa-plus-circle"></i> New Project</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Project Name</label>
+            <input type="text" id="project-name" placeholder="My Awesome Game">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="project-description" rows="3" placeholder="What is this project about?"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-cancel">Cancel</button>
+          <button class="btn btn-primary" id="create-project">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Response Modal -->
+    <div class="modal hidden" id="ai-response-modal">
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h2><i class="fas fa-robot"></i> AI Generated Code</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="ai-response-tabs">
+            <button class="ai-tab active" data-ai-tab="code">Code</button>
+            <button class="ai-tab" data-ai-tab="explanation">Explanation</button>
+          </div>
+          <div class="ai-response-content">
+            <div class="ai-tab-panel active" id="ai-code-panel">
+              <pre class="ai-code-display"><code id="ai-generated-code"></code></pre>
+            </div>
+            <div class="ai-tab-panel" id="ai-explanation-panel">
+              <div id="ai-explanation-text"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-cancel">Close</button>
+          <button class="btn btn-ai" id="apply-ai-code"><i class="fas fa-check"></i> Add to Workspace</button>
+          <button class="btn btn-primary" id="execute-ai-code"><i class="fas fa-play"></i> Test in Roblox</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects Modal -->
+    <div class="modal hidden" id="projects-modal">
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h2><i class="fas fa-folder-open"></i> Your Projects</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="projects-grid" id="projects-grid"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-cancel">Close</button>
+          <button class="btn btn-primary" id="new-project-btn"><i class="fas fa-plus"></i> New Project</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
